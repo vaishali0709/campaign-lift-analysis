@@ -2,7 +2,7 @@
 
 A grocery retailer ran 30 campaigns over two years. 1,584 households got at least one. 916 never got any.
 
-Marketing wants to know what that spend bought them. The easy answer says the campaigns nearly quintupled customer spend. That answer is wrong, and this is about why — and what to say instead.
+Marketing wants to know what that spend bought them. A simple group comparison shows higher spending among contacted households, but it does not establish that the campaigns caused the difference.
 
 2,500 households, 164,128 shopping trips, $4.68M in sales. SQL only, MySQL 8.
 
@@ -19,7 +19,7 @@ Compare what campaigned households spend against everyone else, over the period 
 | Got a campaign | 1,584 | **$1,590** |
 | Never campaigned | 916 | **$279** |
 
-4.7 times more. One query, big number, and it's the number that ends up on a slide.
+The displayed rounded values give 5.70 times as much spending, or approximately 470% higher. This is a between-group comparison, not a measured increase caused by a campaign.
 
 ![Three ways to answer the same question](charts/three_answers.png)
 
@@ -74,11 +74,11 @@ There's no shared trend to compare against, so the $527 can't be trusted either.
 
 ## So what's the answer
 
-**This data can't measure campaign lift.** Not with a simple comparison, and not with difference-in-differences.
+**The comparisons implemented here do not support a causal campaign-lift estimate.** Selection bias and divergent pre-campaign trends limit their interpretation.
 
 That's the finding. A number nobody has stress-tested is worse than no number, because someone will spend real money on it.
 
-**What to do instead:** next campaign, hold back a random slice of the households you were going to contact. Randomly, not by value. Then the comparison works, because the two groups start the same by construction. A 10% holdout costs very little and it's the difference between knowing and guessing.
+**What to do instead:** next campaign, hold back a random slice of the households you were going to contact. Randomly, not by value. Then the comparison works, because the two groups start the same by construction. Choose a holdout size using a power calculation, the minimum effect of interest and operational constraints.
 
 ---
 
@@ -98,7 +98,7 @@ Redemption needs no comparison group — it only involves households that were a
 
 ![Redemption rate by campaign type](charts/redemption_by_type.png)
 
-This one is solid. No assumptions, no comparison group, and it's directly actionable — whatever TypeA does differently is worth understanding before the next round.
+These are descriptive redemption rates. Differences in recipients, offers and campaign timing can affect comparisons between types; higher redemption does not establish greater incremental profit.
 
 **Redemption rises with how many campaigns a household gets:**
 
@@ -110,7 +110,7 @@ This one is solid. No assumptions, no comparison group, and it's directly action
 | 7–10 | 326 | 48.8% |
 | 11+ | 66 | 59.1% |
 
-Read this one carefully. It does **not** show that sending more campaigns works. The retailer sent more campaigns to households it already favoured, so the same selection problem applies here as everywhere else. What it does show is that heavy contact doesn't seem to cause fatigue — redemption keeps climbing rather than dropping off.
+Read this one carefully. It does **not** show that sending more campaigns works. The retailer sent more campaigns to households it already favoured, so the same selection problem applies here as everywhere else. This does not rule out contact fatigue: selection effects and more opportunities to redeem can also explain the pattern.
 
 **Higher income households redeem more,** which is not the usual expectation for coupons:
 
@@ -128,17 +128,19 @@ Only 801 of 2,500 households provided demographics, and the top bands here have 
 
 ## What I'd recommend
 
-**Stop quoting campaign lift from historical data.** Any number produced this way is measuring who the retailer chose, not what the campaign did.
+**Do not quote these comparisons as campaign lift.** They combine selection differences with any possible treatment effect.
 
-**Add a holdout to the next campaign.** Randomly exclude 10% of the intended recipients. It costs a fraction of the campaign budget and it's the only way to get a lift number that survives questioning.
+**Add a holdout to the next campaign.** Randomise eligible households into treatment and control, with sample sizes based on statistical power and business constraints.
 
-**Shift the mix toward TypeA.** Twice the redemption rate of the other two, and this finding doesn't depend on any assumption. Worth understanding what's different about it before the next round.
+**Investigate TypeA before changing the mix.** Its observed redemption rate is higher, but recipient differences, offer costs and incremental outcomes need evaluation.
 
-**Don't read the volume table as a reason to send more.** It's the same selection effect. But it does suggest that contact fatigue isn't the constraint, which is useful to know when designing the holdout test.
+**Don't read the volume table as a reason to send more.** It's the same selection effect. The table cannot establish whether contact fatigue is present.
 
 ---
 
 ## What this analysis can't tell you
+
+**Denominators need reconciliation.** Some SQL comparisons include only households active within each period, while the difference-in-differences calculation uses a broader household base. Reconcile those populations and reproduce the outputs before reusing the dollar estimates. A changing treated/control ratio alone is not a formal test of parallel trends in spending levels.
 
 **No campaign cost data.** Redemption rates are here, spend is here, what any of it cost is not. Without that there's no return figure.
 
